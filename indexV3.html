@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <title>Floorplan</title>
+	<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+	<!--  Include the webusb support library  -->
+	<script src="ubitwebusb.js"></script>
+</head>
+<body style="margin : 0px; overflow: hidden;">
+<input type = "button" id="connect" value="Connect"/> 
+<input type = "button" id="disconnect" value="Disconnect"/> 
+<input type = "button" id="clear" value="Clear"/> <br /><br />
+<div id="console">Waiting for connection. </div>         
+<div id="ARR"></div>
+
+<script>
+    
+	var names = [];
+	var count = 0;
+   /* function consolePrintln(microbitData, serial) 
+	{		
+        var con = document.getElementById("console")
+        con.innerHTML = 		
+		"<table><tr><th>Location</th><th>Temp</th><th>Signal</th><th>Serial Number</th></tr>			<tr><td>"+microbitData[1]+"</td><td>"+microbitData[2]+"</td><td>"+microbitData[0]+"</td><td>"+serial+"</td></tr>";		
+    }*/
+	
+	function showMicrobit(microbitData)
+	{
+		var con = document.getElementById("console")
+		
+		if (count == 0)
+		{
+			count = 1
+			con.innerHTML = "";			
+		}
+		
+		
+		//who is this?
+		var name = microbitData[1];
+		if (names.indexOf(name) == -1)
+		{
+			//a new microbit
+			names.push(name)			
+			con.innerHTML += "<div id='"+microbitData[1]+"'>"+microbitData+"<img src='mb.svg' width='200' height='164' alt='"+microbitData[1]+"'/><br /><h1>"+microbitData[2]+"</h1></div>";
+		}
+		else
+		{
+			//an old micro:bit, update its data
+			var div = document.getElementById(microbitData[1]);
+			div.innerHTML = microbitData+"<img src='mb.svg' width='200' height='164' alt='"+microbitData[1]+"'/><br /><h1>"+microbitData[2]+"</h1>";
+		}
+	}
+	
+
+    // List of connected devices (a single value could be used if only connecting to one device)
+    var connectedDevices = []
+	var count = 0;
+
+    // Example event call-back handler
+    function uBitEventHandler(reason, device, data) 
+	{
+        switch(reason) 
+		{
+            case "connected":
+                //consolePrintln("<b>Connected!</b>")
+                connectedDevices.push(device)
+                break
+            case "disconnected":
+                //consolePrintln("<b>Disconnected</b>")
+                connectedDevices = connectedDevices.filter( v => v != device)
+                break
+            case "connection failure":
+                //consolePrintln("<b>Connection Failure</b>")
+                break
+            case "error":
+                //consolePrintln("<b>Error</b>")                
+                break
+            case "console":
+                consolePrintln("Console Data: " + data.data)
+                break
+            case "graph-event":			
+				var dataIn = data.data;
+				var microbitData = dataIn.split(":")				
+				showMicrobit(microbitData);
+                break
+            case "graph-data":
+                consolePrintln(`Graph Data:${data.data}(for ${data.graph}${data.series.length?"/series "+data.series:""})`)
+                break
+        }
+    }
+
+    // Make the "go" button open the request devices box
+    document.getElementById("connect").addEventListener("click", () => uBitConnectDevice(uBitEventHandler))
+    document.getElementById("disconnect").addEventListener("click", () => connectedDevices.forEach(d=>uBitDisconnect(d)))
+    document.getElementById("clear").addEventListener("click", () => { document.getElementById("console").innerHTML = "" })
+
+</script>
+
+</html>
