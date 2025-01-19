@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <title>Fablearn Demo</title>
+	<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+	<script src="https://kit.fontawesome.com/489a6289ab.js" crossorigin="anonymous"></script>
+	<!--  Include the webusb support library  -->
+	<script src="ubitwebusb1.js"></script>	
+	<script>
+	function allowDrop(ev) 
+	{
+	  ev.preventDefault();
+	}
+
+	function drag(ev) 
+	{
+	  //alert("1")
+	  console.log("XXXXX "+ev.target.id)	  
+	  
+	  //clear the old row
+	  if (document.getElementById(ev.target.id+"cell"))
+	  {
+		document.getElementById(ev.target.id+"cell").style.backgroundColor = "white"
+		document.getElementById(ev.target.id+"cell").id = ""
+	  }
+	  
+	  
+	  
+	  ev.dataTransfer.setData("text", ev.target.id);
+	  //ev.tare
+	  
+
+	  console.log("YYYY "+ev.target.id)
+	}
+
+	function drop(ev) 
+	{
+		
+	  ev.preventDefault();	  
+	  var data = ev.dataTransfer.getData("text");	  
+	  console.log("data "+data)
+	  ev.target.appendChild(document.getElementById(data));
+	  ev.target.id = data+"cell"
+	}
+	</script>
+	</head>
+	
+<body style="margin : 0px; overflow: hidden;">
+<input type = "button" id="connect" value="Connect"/> 
+<input type = "button" id="disconnect" value="Disconnect"/> 
+<input type = "button" id="clear" value="Clear"/> <br /><br />
+<div id="console">Waiting for connection. </div>         
+
+
+<div class="w3-third w3-padding" >
+	<h5 class="w3-blue">Devices</h5>
+	<table class="w3-table w3-striped w3-white" id="devices">
+	<tr id="row1">
+		<td ondrop="drop(event)" ondragover="allowDrop(event)" style="display:none" id="row1cell">
+			<img src='mb.svg' width='42' height='35' draggable="true" ondragstart="drag(event)" id="row1pic" />
+		</td>
+	</tr>
+	<tr id="row2">
+		<td ondrop="drop(event)" ondragover="allowDrop(event)" style="display:none" id="row2cell">
+			<img src='mb.svg' width='42' height='35' draggable="true" ondragstart="drag(event)" id="row2pic" />
+		</td>
+	</tr>
+	<tr id="row3">
+		<td ondrop="drop(event)" ondragover="allowDrop(event)" style="display:none" id="row3cell">
+			<img src='mb.svg' width='42' height='35' draggable="true" ondragstart="drag(event)" id="row3pic" />
+		</td>
+	</tr>
+	
+	</table>
+	
+	<h5 class="w3-blue">Network</h5>
+		<table border='1' id="packets" class="w3-table w3-striped w3-white">
+			<tr class="w3-light-blue">
+				<th>micro:bit</th><th>Packet sent</th>
+			</tr>
+		</table>
+		<p id="stopwatch"></p>
+</div>
+
+
+<div class="w3-third w3-padding">
+	<h5 class="w3-red">Floorplan</h5>
+	<table width="350"> 	
+	<tr>
+		<td class="black" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)" height="50px" ></td>
+		<td class="black" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="black" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="red" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="red" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="red" width="55px" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+	</tr>
+	<tr>
+		<td class="black" ondrop="drop(event)" ondragover="allowDrop(event)" height="50px"></td>
+		<td class="black" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="black" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+
+		<td class="red" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="red" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+		<td class="red" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+	</tr>	
+	<tr>
+		<td colspan="3">
+		Classroom 1
+		</td>
+		<td colspan="3" style="color:red">
+		Classroom 2
+		</td>		
+	</tr>
+	<tr height="50px">
+		<td class="blue" colspan="6" ondrop="drop(event)" ondragover="allowDrop(event)"></td>
+	</tr>
+		<tr height="35px" style="color:blue">
+		<td>Corridor</td>
+	</tr>
+
+	</table>
+	
+	
+	<h5 class="w3-red">Graph</h5>
+	<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script src="graphy.js"></script>
+
+</div>
+<div class="w3-third w3-padding">
+	<h5 class="w3-green">Weather</h5>
+	<table class="w3-table w3-striped w3-white" id="external">
+		<tr>
+			<td><i class="fas fa-cloud-sun-rain w3-text-green w3-large"></i></td>
+			<td>Forecast</td>
+			<td id="external_condition"></td>
+		</tr>
+		<tr>
+			<td><i class="	fas fa-temperature-low w3-text-green w3-large"></i></td>
+			<td>Temperature</td>
+			<td id="external_temp"></td>
+		</tr>
+		<tr>
+			<td><i class="fas fa-wind w3-text-green w3-large"></i></td>
+			<td>Wind direction</td>
+			<td id="external_winddir"></td>
+		</tr>
+	</table>
+	<hr>
+	<h5>Energy Mix</h5>
+	<table class="w3-table w3-striped w3-white">
+		<tr>
+			<td><i class="fas fa-hard-hat w3-text-green w3-large"></i></td>
+			<td>Fossil Fuels (Coal, Oil & Gas)</td>
+			<td><i></i></td></tr>
+		<tr>
+			<td><i class="fas fa-fan w3-text-green w3-large"></i></td>
+			<td>Renewable (solas, wind, hydroelectric)</td>
+			<td><i></i></td>
+		</tr>		  
+		<tr>
+			<td><i class="fas fa-fan w3-text-green w3-large"></i></td>
+			<td>Other energy (Nuclear, Biomass)</td>
+			<td><i></i></td>
+		</tr>
+	</table>
+</div>
+
+<script>
+	var count = 0;
+	var names = [];
+	var intervals = {};
+	var timings = {};
+	var timer = 0
+	var noOfRows = 0
+	
+	//tempData = [1234,"class1",19]
+	//addRows(tempData, "devices")
+	
+	function addRows(mb_data, table)
+	{
+	
+		var newTable = document.getElementById(table);
+		var rowCount = newTable.rows.length;
+		var id = mb_data[0];
+		var name = mb_data[1];	
+		var temp = mb_data[2];		
+		console.log("addRows "+table)
+		
+		if (table == "devices")
+		{
+			//bodge code to add row to draggable row
+			noOfRows = noOfRows + 1
+			//show the row
+			document.getElementById("row"+noOfRows+"cell").style.display="block"
+			//change the id of the image
+			document.getElementById("row"+noOfRows+"pic").id = id		
+			
+			console.log("rows: "+noOfRows)
+			var row = document.getElementById("row"+noOfRows)
+
+			/*			
+			//add a new row
+			var row = newTable.insertRow(rowCount);
+		
+			//add a new cell //pic				
+			var cell = id+"_pic";			
+			cell = row.insertCell(0);			
+			cell.innerHTML="<img ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" src='mb.svg' width='42' height='35' alt='"+mb_data[1]+"' id='"+mb_data[0]+"'/><br />";
+			*/
+			
+			//name
+			var cell = name;
+			cell = row.insertCell(1);			
+			cell.innerHTML=name;
+			cell.id = id+"name";
+
+			//temp				
+			var cell = temp;
+			cell = row.insertCell(2);			
+			cell.innerHTML=temp;
+			cell.id = id+"_temp";
+			
+			//status
+			var cell = "status"
+			cell = row.insertCell(3);			
+			cell.innerHTML = "<i class=\"fas fa-circle w3-text-green\"></i>";
+			cell.id = id+"_status";
+			
+			//download
+			var cell = "download"
+			cell = row.insertCell(4);			
+			cell.innerHTML = "<i class='fas fa-download w3-large'></i>";
+			
+		}
+		
+		if (table == "packets")
+		{			
+			if (rowCount > 5)
+			{				
+				//delete row1					
+				newTable.deleteRow(1);
+				document.getElementById("packet1").id = "packet0";					
+				document.getElementById("packet2").id = "packet1";					
+				document.getElementById("packet3").id = "packet2";
+				document.getElementById("packet4").id = "packet3";
+			}
+
+
+			//add a new row
+			rowCount = newTable.rows.length;				
+			var row = newTable.insertRow(rowCount);
+			
+			var currentdate = new Date(); 			
+			updateChart(dataLength, mb_data, currentdate);	
+
+			function addZero(i) 
+			{
+				if (i < 10) {i = "0" + i}
+				return i;
+			}
+			//get the data, set it
+			var currentdate = new Date(); 
+			var packetSent = addZero(currentdate.getHours()) + ":"+ addZero(currentdate.getMinutes()) + ":"+ addZero(currentdate.getSeconds());
+			
+			//name
+			var cell = name;
+			cell = row.insertCell(0);
+			var rowwy = rowCount-1;
+			cell.id = "packet"+rowwy;
+			cell.innerHTML=name;
+			//time
+			var cell = name;
+			cell = row.insertCell(1);
+			cell.id = name+"_packet";
+			cell.innerHTML=packetSent;
+			
+		}
+	}
+		
+	
+	function updateRow(data)
+	{	
+		
+		//alert("update row "+data)
+		editRow = data[0]+"_temp";		
+		document.getElementById(editRow).innerHTML = data[2];
+		
+		if (data[2] > 25)
+		{
+			editRow = data[0]+"_temp"
+			document.getElementById(editRow).style.backgroundColor="yellow"
+			
+			editRow = data[0]+"cell"
+			if (document.getElementById(editRow))
+			{
+				document.getElementById(editRow).style.backgroundColor="yellow"	
+			}
+			
+		}
+			
+		
+		
+
+	}
+	
+	function download(which)
+	{
+		//ask the micro:bit for its data
+		//serial.writeLine... /n
+		alert("download");
+	}
+	
+	function checkMicrobits()
+	{
+		
+		for(var key in timings) 
+		{			
+			var lastRecording = new Date(timings[key]);
+			var now = new Date();			
+			var interval = intervals[key];
+			
+			var difference = new Date(lastRecording);
+			var dead = (interval*4)/1000
+			//console.log("intervals "+intervals[key])
+			
+						
+			difference.setSeconds(difference.getSeconds() + dead);
+			//console.log(key+"= "+now.getMinutes()+":"+now.getSeconds()+" > "+difference.getMinutes()+":"+difference.getSeconds())
+			
+			
+			//if now is greater than the difference, we've lost that microbit			
+			if (now > difference)
+			{
+				//remove its data from timings and intervals
+				//delete timings[key]
+				//delete intervals[key]
+				
+				//remove from list of microbits
+				//var index = names.indexOf(key)
+				//names.splice(index, 1);
+							
+				//remove from table
+				//document.getElementById(key).remove();
+				console.log("HHHH "+key+"_status")
+				document.getElementById(key+"_status").innerHTML = "<i class=\"fas fa-circle w3-text-red\">";
+			}
+		}
+	}	
+	
+	setInterval(checkMicrobits, 5000);
+	
+	function getWeather()
+	{
+		const myList = document.querySelector('ul');
+		const myRequest = new Request('http://api.weatherapi.com/v1/current.json?key=SECREYKEY&q=London');
+		
+
+		fetch(myRequest)
+		  .then(response => response.json())
+		  .then(data => 
+		  {			
+			document.getElementById("external_temp").innerHTML = data.current.temp_c;
+			document.getElementById("external_condition").innerHTML = data.current.condition.text;
+			document.getElementById("external_winddir").innerHTML = data.current.wind_dir;
+			
+		
+		  })
+		  .catch(console.error);
+	
+	}
+	
+	function showMicrobit(microbitData)
+	{		
+		timer= timer+1;
+		document.getElementById("stopwatch").innerHTML = timer;
+		
+//		var con = document.getElementById("console")
+		var id = microbitData[0];
+		
+		//who is this?
+		var check_name = microbitData[1];
+		
+		//its a setup flag, e.g. Class1_S
+		if (check_name.indexOf("_S") > 0)
+		{
+			//console.log("setup flag");
+			//was the microbit already in the list? 
+			//var theName = check_name.split("_")
+			//name = theName[1]
+			intervals[id]=microbitData[2]
+			
+			//if the microbit is not new new, change its status to green
+			if (names.indexOf(id) > -1)
+			{
+				editRow = id+"_status";								
+				document.getElementById(editRow).innerHTML = "<i class=\"fas fa-circle w3-text-green\"></i>";
+			}			
+			else
+			{		
+				//add the microbit name (class1) to the list of names
+				names.push(id)
+				var newData = [name,"",""]
+				addRows(newData, 'devices');							
+			}
+			timings[id]= new Date();
+		}
+		else
+		{
+			//if the micro:bit isn't in our list, it was on before the webpage loaded
+			if (names.indexOf(id) == -1)
+			{
+				console.log("HERE");				
+				console.log(names);
+				intervals[id]=1000
+				names.push(id)
+				//console.log("HERE NOW "+names);
+				addRows(microbitData, 'devices');	
+				timings[id]= new Date();
+			}
+			else
+			{
+				
+				//not new, update the device row				
+				updateRow(microbitData);
+				addRows(microbitData, 'packets');				
+			}
+			
+			timings[id]= new Date();
+			
+			/*if (timer == 20)
+			{
+				timer = 0;
+					getWeather();
+			}*/
+
+
+		}
+	}
+	
+
+    // List of connected devices (a single value could be used if only connecting to one device)
+    var connectedDevices = []
+	var count = 0;
+
+    // Example event call-back handler
+    function uBitEventHandler(reason, device, data) 
+	{
+        switch(reason) 
+		{
+            case "connected":                
+                connectedDevices.push(device)
+                break
+            case "disconnected":                
+                connectedDevices = connectedDevices.filter( v => v != device)
+                break
+            case "connection failure":
+                alert("fail")//consolePrintln("<b>Connection Failure</b>")
+                break
+            case "error":
+				alert("error")
+                //consolePrintln("<b>Error</b>")                
+                break
+            case "graph-event":			
+				var dataIn = data.data;
+				//alert("data in "+dataIn)
+				var microbitData = dataIn.split(":")								
+				showMicrobit(microbitData);
+                break
+        }
+    }
+
+    // Make the "go" button open the request devices box
+    document.getElementById("connect").addEventListener("click", () => uBitConnectDevice(uBitEventHandler))
+    document.getElementById("disconnect").addEventListener("click", () => connectedDevices.forEach(d=>uBitDisconnect(d)))
+    
+
+</script>
+
+</html>
